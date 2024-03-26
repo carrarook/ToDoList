@@ -1,6 +1,6 @@
 function adicionaTarefaNaLista() {
-    const novaTarefa = document.getElementById('input_nova_tarefa').value.trim();
-    if (novaTarefa !== '') {
+    const novaTarefa = document.getElementById('input_nova_tarefa').value;
+    if (novaTarefa.trim() !== '') {
         criaNovoItemDaLista(novaTarefa);
         document.getElementById('input_nova_tarefa').value = '';
     }
@@ -11,29 +11,67 @@ function criaNovoItemDaLista(textoDaTarefa) {
     let qtdTarefas = listaTarefas.children.length;
     const novoItem = document.createElement('li');
     novoItem.innerText = textoDaTarefa;
-    novoItem.id = `tarefa_id_${qtdTarefas++}`; // Corrigido para usar concatenação correta
+    novoItem.id = `tarefa_id_${qtdTarefas++}`;
+
+    // Adiciona evento de duplo clique para editar
+    novoItem.addEventListener('dblclick', function() {
+        editaTarefa(this);
+    });
+
     novoItem.appendChild(criaInputCheckBoxTarefa(novoItem.id));
     listaTarefas.appendChild(novoItem);
+}
+
+function editaTarefa(tarefa) {
+    const textoTarefa = tarefa.innerText;
+    const inputEdicao = document.createElement('input');
+    inputEdicao.type = 'text';
+    inputEdicao.value = textoTarefa;
+
+    inputEdicao.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            finalizaEdicaoTarefa(tarefa, inputEdicao);
+        }
+    });
+
+    tarefa.innerHTML = '';
+    tarefa.appendChild(inputEdicao);
+    inputEdicao.focus();
+}
+
+function finalizaEdicaoTarefa(tarefa, inputEdicao) {
+    const novoTexto = inputEdicao.value;
+    tarefa.innerHTML = novoTexto;
+    // Adiciona evento de duplo clique novamente para permitir futuras edições
+    tarefa.addEventListener('dblclick', function() {
+        editaTarefa(this);
+    });
+    tarefa.appendChild(criaInputCheckBoxTarefa(tarefa.id));
 }
 
 function criaInputCheckBoxTarefa(idTarefa) {
     const inputTarefa = document.createElement('input');
     inputTarefa.type = 'checkbox';
-    inputTarefa.setAttribute('onclick', `mudaEstadoTarefa('${idTarefa}')`); // Corrigido para usar concatenação correta
+    inputTarefa.setAttribute('onclick', `mudaEstadoTarefa('${idTarefa}')`);
     return inputTarefa;
 }
 
 function mudaEstadoTarefa(idTarefa) {
     const tarefaSelecionada = document.getElementById(idTarefa);
-    const estiloCalculado = window.getComputedStyle(tarefaSelecionada); // Obtém o estilo calculado
-    if (estiloCalculado.textDecoration === 'line-through') { // Usa o estilo calculado para comparação
-        tarefaSelecionada.style.textDecoration = 'none'; // Altera o estilo inline corretamente
+    if (tarefaSelecionada.style.textDecoration === 'line-through') {
+        tarefaSelecionada.style.textDecoration = 'none';
     } else {
-        tarefaSelecionada.style.textDecoration = 'line-through'; // Altera o estilo inline corretamente
-    }    
+        tarefaSelecionada.style.textDecoration = 'line-through';
+    }
 }
 
 function resetTarefas() {
     const listaTarefas = document.getElementById('lista_de_tarefas');
-    listaTarefas.innerHTML = '';
+    const tarefas = listaTarefas.querySelectorAll('li');
+
+    tarefas.forEach(tarefa => {
+        if (tarefa.style.textDecoration === 'line-through') {
+            listaTarefas.removeChild(tarefa);
+        }
+    });
 }
