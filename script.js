@@ -1,8 +1,14 @@
+// carrega as tarefas do Local Storage
+window.onload = function() {
+    carregaTarefasDoLocalStorage();
+};
+
 function adicionaTarefaNaLista() {
     const novaTarefa = document.getElementById('input_nova_tarefa').value;
     if (novaTarefa.trim() !== '') {
         criaNovoItemDaLista(novaTarefa);
         document.getElementById('input_nova_tarefa').value = '';
+        salvaTarefasNoLocalStorage();
     }
 }
 
@@ -13,7 +19,6 @@ function criaNovoItemDaLista(textoDaTarefa) {
     novoItem.innerText = textoDaTarefa;
     novoItem.id = `tarefa_id_${qtdTarefas++}`;
 
-    // Adiciona evento de duplo clique para editar
     novoItem.addEventListener('dblclick', function() {
         editaTarefa(this);
     });
@@ -31,6 +36,7 @@ function editaTarefa(tarefa) {
     inputEdicao.addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
             finalizaEdicaoTarefa(tarefa, inputEdicao);
+            salvaTarefasNoLocalStorage();
         }
     });
 
@@ -42,7 +48,6 @@ function editaTarefa(tarefa) {
 function finalizaEdicaoTarefa(tarefa, inputEdicao) {
     const novoTexto = inputEdicao.value;
     tarefa.innerHTML = novoTexto;
-    // Adiciona evento de duplo clique novamente para permitir futuras edições
     tarefa.addEventListener('dblclick', function() {
         editaTarefa(this);
     });
@@ -63,6 +68,8 @@ function mudaEstadoTarefa(idTarefa) {
     } else {
         tarefaSelecionada.style.textDecoration = 'line-through';
     }
+
+    salvaTarefasNoLocalStorage(); // salva as tarefas atualizadas
 }
 
 function resetTarefas() {
@@ -72,6 +79,36 @@ function resetTarefas() {
     tarefas.forEach(tarefa => {
         if (tarefa.style.textDecoration === 'line-through') {
             listaTarefas.removeChild(tarefa);
+        }
+    });
+
+    salvaTarefasNoLocalStorage(); // salva as tarefas
+}
+
+function salvaTarefasNoLocalStorage() {
+    const listaTarefas = document.getElementById('lista_de_tarefas');
+    const tarefas = listaTarefas.querySelectorAll('li');
+    const tarefasArray = [];
+
+    tarefas.forEach(tarefa => {
+        tarefasArray.push({
+            id: tarefa.id,
+            texto: tarefa.innerText,
+            concluida: tarefa.style.textDecoration === 'line-through'
+        });
+    });
+
+    localStorage.setItem('tarefas', JSON.stringify(tarefasArray));
+}
+
+function carregaTarefasDoLocalStorage() {
+    const tarefasArray = JSON.parse(localStorage.getItem('tarefas')) || [];
+
+    tarefasArray.forEach(tarefa => {
+        criaNovoItemDaLista(tarefa.texto);
+        const tarefaElement = document.getElementById(tarefa.id);
+        if (tarefa.concluida) {
+            tarefaElement.style.textDecoration = 'line-through';
         }
     });
 }
