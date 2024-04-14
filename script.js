@@ -109,6 +109,10 @@ function carregaTarefasDoLocalStorage() {
         const tarefaElement = document.getElementById(tarefa.id);
         if (tarefa.concluida) {
             tarefaElement.style.textDecoration = 'line-through';
+            const checkbox = tarefaElement.querySelector('input[type="checkbox"]');
+            if (checkbox) {
+                checkbox.checked = true;
+            }
         }
     });
 }
